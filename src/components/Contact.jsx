@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../config/supabaseClient";
-import { Mail, Github } from "lucide-react";
+import { Mail, Github, Send } from "lucide-react";
+import emailjs from "@emailjs/browser";
 
 const Contact = () => {
-  // 1. Default Data
+  const form = useRef();
+  const [loading, setLoading] = useState(false);
+
+  // 1. FIXED: Added missing state for form inputs
+  const [formData, setFormData] = useState({
+    user_name: "",
+    user_email: "",
+    subject: "",
+    message: ""
+  });
+
   const [contactInfo, setContactInfo] = useState({
     section_title: "Contact Me",
     section_description: "I’d love to hear from you! Whether it’s a question, collaboration, or just a hello — feel free to reach out.",
@@ -13,11 +24,10 @@ const Contact = () => {
     behance_url: "https://www.behance.net/lianngonza304c",
   });
 
-  // 2. Fetch Data from Supabase
   useEffect(() => {
     const fetchContact = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("contact")
           .select("*")
           .eq("id", 1)
@@ -36,11 +46,79 @@ const Contact = () => {
         console.error("Error fetching contact info:", err);
       }
     };
-
     fetchContact();
   }, []);
 
-  // Helper to remove 'https://' for a cleaner look
+  // 2. FIXED: Added missing handleChange function so you can type
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const sendEmail = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Use environment variables for EmailJS credentials
+    const SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID || "service_2c3io6d";
+    const TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID || "template_ztw3idm";
+    const PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || "LuSzLOoX21gYWbhcA";
+
+    // Basic form validation
+    if (!formData.user_name || !formData.user_email || !formData.message) {
+      alert("Please fill in all required fields.");
+      setLoading(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.user_email)) {
+      alert("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Create form data object that matches EmailJS template parameters
+      const templateParams = {
+        from_name: formData.user_name,
+        from_email: formData.user_email,
+        subject: formData.subject || 'No Subject',
+        message: formData.message,
+        to_email: contactInfo.email || 'lianngonzales7@gmail.com'
+      };
+
+      // Send email using EmailJS
+      const response = await emailjs.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        templateParams,
+        PUBLIC_KEY
+      );
+
+      console.log('Email sent successfully!', response);
+      alert("✅ Message sent successfully! I'll get back to you soon.");
+      
+      // Reset form
+      setFormData({ 
+        user_name: "", 
+        user_email: "", 
+        subject: "", 
+        message: "" 
+      });
+    } catch (error) {
+      console.error('Email send error:', {
+        status: error.status,
+        text: error.text,
+        message: error.message,
+        response: error.response
+      });
+      alert(`❌ Failed to send message: ${error.text || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatUrl = (url) => {
     if (!url) return "";
     return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
@@ -49,12 +127,10 @@ const Contact = () => {
   return (
     <section 
       id="contact" 
-      // UPDATED: Changed dark:bg-[#0a0f1c] to dark:bg-black
-      className="py-20 bg-gray-50 dark:bg-black text-gray-900 dark:text-white min-h-screen flex flex-col items-center justify-center transition-colors duration-300"
+      className="py-20 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen flex flex-col items-center justify-center transition-colors duration-300"
     >
       <div className="max-w-4xl mx-auto px-6 w-full">
         
-        {/* --- Header Section --- */}
         <motion.div 
           className="text-center mb-10"
           initial={{ opacity: 0, y: -20 }}
@@ -67,7 +143,6 @@ const Contact = () => {
           </p>
         </motion.div>
 
-        {/* --- Links Row (Email, GitHub, Behance) --- */}
         <motion.div 
           className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mb-16 text-gray-600 dark:text-gray-300"
           initial={{ opacity: 0 }}
@@ -75,13 +150,11 @@ const Contact = () => {
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
         >
-          {/* Email */}
           <a href={`mailto:${contactInfo.email}`} className="flex items-center gap-2 hover:text-[#3246ea] dark:hover:text-white transition-colors font-medium">
             <Mail size={20} />
             <span>{contactInfo.email}</span>
           </a>
 
-          {/* GitHub */}
           {contactInfo.github_url && (
             <a 
               href={contactInfo.github_url} 
@@ -94,7 +167,6 @@ const Contact = () => {
             </a>
           )}
 
-          {/* Behance */}
           {contactInfo.behance_url && (
             <a 
               href={contactInfo.behance_url} 
@@ -108,8 +180,6 @@ const Contact = () => {
           )}
         </motion.div>
 
-
-        {/* --- Form Section --- */}
         <motion.div 
           className="w-full max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
@@ -121,11 +191,15 @@ const Contact = () => {
             Send Me a Message
           </h3>
 
-          <form className="space-y-4">
+          <form ref={form} onSubmit={sendEmail} className="space-y-4">
             <div>
               <label className="block text-gray-700 dark:text-gray-400 mb-1 text-sm font-medium">Name</label>
               <input 
                 type="text" 
+                name="user_name"
+                value={formData.user_name}
+                onChange={handleChange}
+                required
                 className="w-full p-3 rounded-md border outline-none transition-all
                            bg-white dark:bg-[#1a1f2e] 
                            border-gray-300 dark:border-gray-700 
@@ -138,6 +212,10 @@ const Contact = () => {
               <label className="block text-gray-700 dark:text-gray-400 mb-1 text-sm font-medium">Email</label>
               <input 
                 type="email" 
+                name="user_email"
+                value={formData.user_email}
+                onChange={handleChange}
+                required
                 className="w-full p-3 rounded-md border outline-none transition-all
                            bg-white dark:bg-[#1a1f2e] 
                            border-gray-300 dark:border-gray-700 
@@ -150,6 +228,10 @@ const Contact = () => {
               <label className="block text-gray-700 dark:text-gray-400 mb-1 text-sm font-medium">Subject</label>
               <input 
                 type="text" 
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                required
                 className="w-full p-3 rounded-md border outline-none transition-all
                            bg-white dark:bg-[#1a1f2e] 
                            border-gray-300 dark:border-gray-700 
@@ -161,6 +243,10 @@ const Contact = () => {
             <div>
               <label className="block text-gray-700 dark:text-gray-400 mb-1 text-sm font-medium">Message</label>
               <textarea 
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                required
                 className="w-full p-3 rounded-md border outline-none transition-all h-32 resize-none
                            bg-white dark:bg-[#1a1f2e] 
                            border-gray-300 dark:border-gray-700 
@@ -171,9 +257,16 @@ const Contact = () => {
 
             <button 
               type="submit"
-              className="w-full bg-[#3246ea] hover:bg-blue-600 text-white font-semibold py-3 rounded-md transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              disabled={loading}
+              className="w-full bg-[#3246ea] hover:bg-blue-600 text-white font-semibold py-3 rounded-md transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Message
+              {loading ? (
+                "Sending..."
+              ) : (
+                <>
+                  <Send size={18} /> Send Message
+                </>
+              )}
             </button>
           </form>
         </motion.div>

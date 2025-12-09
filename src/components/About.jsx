@@ -8,13 +8,13 @@ function About() {
     title: "IT professional and digital creative",
     location: "Bulacan, Philippines",
     paragraph1:
-      "Hi, I'm <strong>Liann Gonzales</strong> — an aspiring <strong>IT professional </strong> and <strong>digital creative</strong> from <strong>Bulacan, Philippines</strong>. I'm passionate about technology, design, and continuous learning. My goal is to bridge creativity and functionality by crafting meaningful digital experiences that make everyday tasks simpler and more enjoyable.",
+      "Hi, I'm <strong>Liann Gonzales</strong>, an aspiring <strong>IT professional </strong> and <strong>digital creative</strong> from <strong>Bulacan, Philippines</strong>. I'm passionate about technology, design, and continuous learning. My goal is to bridge creativity and functionality by crafting meaningful digital experiences that make everyday tasks simpler and more enjoyable.",
     paragraph2:
-      "As an <strong>Information Technology student</strong>, I love exploring various fields such as <strong>UI/UX design</strong>, <strong>front-end web development</strong>, and <strong>software innovation</strong>. I enjoy turning ideas into real, interactive projects — from designing clean, user-friendly interfaces to building systems that help people stay focused, organized, and productive.",
+      "As an <strong>Information Technology student</strong>, I love exploring various fields such as <strong>UI/UX design</strong>, <strong>front-end web development</strong>, and <strong>software innovation</strong>. I enjoy turning ideas into real, interactive projects from designing clean, user-friendly interfaces to building systems that help people stay focused, organized, and productive.",
     paragraph3:
-      "Outside academics, I express my creativity through <strong>graphic design</strong> and <strong> digital art</strong>. I've worked on logo designs, brand identities, and illustrations that reflect personality and purpose. My experience as a <strong> gymnastics coach</strong> and <strong>technical director</strong> has also strengthened my teamwork, leadership, and attention to detail — qualities that I apply in both creative and technical work.",
+      "Outside academics, I express my creativity through <strong>graphic design</strong> and <strong> digital art</strong>. I've worked on logo designs, brand identities, and illustrations that reflect personality and purpose. My experience as a <strong> gymnastics coach</strong> and <strong>technical director</strong> has also strengthened my teamwork, leadership, and attention to detail qualities that I apply in both creative and technical work.",
     paragraph4:
-      "I'm constantly learning, experimenting, and improving — whether it's mastering new technologies, designing better user flows, or collaborating with others on innovative ideas. Ultimately, I aspire to become a <strong>versatile IT professional</strong> who blends technical knowledge with creative thinking to make a positive impact in the digital world.",
+      "I'm constantly learning, experimenting, and improving whether it's mastering new technologies, designing better user flows, or collaborating with others on innovative ideas. Ultimately, I aspire to become a <strong>versatile IT professional</strong> who blends technical knowledge with creative thinking to make a positive impact in the digital world.",
   };
 
   const [about, setAbout] = useState(defaultAbout);

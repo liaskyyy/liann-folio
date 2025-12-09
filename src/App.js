@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Public Components
@@ -16,7 +16,25 @@ import TechStack from "./components/TechStack";
 import Login from "./pages/Login"; 
 import Dashboard from "./pages/Dashboard"; 
 
+// Check for dark mode preference
+const isDarkMode = () => {
+  if (typeof window === 'undefined') return false;
+  return (
+    localStorage.theme === 'dark' || 
+    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  );
+};
+
 function App() {
+  // Set dark mode on initial load
+  useEffect(() => {
+    if (isDarkMode()) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   // Allow running the app under a subpath (GitHub Pages). Prefer an
   // explicit `REACT_APP_BASENAME` env var for local development so you
   // can force the app to run at root (set to empty). By default we do

@@ -4,8 +4,8 @@ import { ReactTyped } from "react-typed";
 import LiannFront from "../assets/LiannFront.png";
 import LiannBack from "../assets/LiannBack.png";
 import resume from "../assets/LiannGonzalesResume.pdf";
-import BibleVerse from "./api/BibleVerse";
-import CircularText from "./ui/CircularText";
+import BibleVerse from "../api/BibleVerse";   // Corrected path
+import CircularText from "../ui/CircularText"; // Corrected path
 
 function Home() {
   const [flipped, setFlipped] = useState(false);
@@ -14,11 +14,11 @@ function Home() {
     setFlipped(!flipped);
   };
   
-
   return (
     <motion.section
       id="home"
-      className="pt-24 sm:pt-28 pb-16 bg-white dark:bg-black relative flex items-center justify-center min-h-screen"
+      // UPDATED: Background is now dark:bg-gray-950
+      className="pt-24 sm:pt-28 pb-16 bg-white dark:bg-gray-950 relative flex items-center justify-center min-h-screen transition-colors duration-300"
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7 }}
@@ -118,9 +118,6 @@ function Home() {
           <div className="mt-4">
             <BibleVerse />
           </div>
-          
-
-
 
           <motion.div className="mt-6 flex flex-wrap justify-center md:justify-start gap-3">
             <a
@@ -141,7 +138,6 @@ function Home() {
         </div>
       </div>
     </motion.section>
-    
   );
 }
 

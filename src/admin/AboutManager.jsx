@@ -40,30 +40,36 @@ export default function AboutManager() {
         .eq("id", 1)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error) throw error;
 
       if (data) {
-        setAboutData({
-          name: data.name || "",
-          title: data.title || "",
-          location: data.location || "",
-          circular_text: data.circular_text || "",
-          resume_link: data.resume_link || "",
-          // Ensure it's an array
-          typed_strings: (Array.isArray(data.typed_strings) && data.typed_strings.length > 0)
-            ? data.typed_strings 
-            : DEFAULT_STRINGS,
-          paragraph1: data.paragraph1 || "",
-          paragraph2: data.paragraph2 || "",
-          paragraph3: data.paragraph3 || "",
-          paragraph4: data.paragraph4 || "",
+        const defaultData = {
+          section_title: "",
+          section_description: "",
+          about_me: "",
+          about_me_2: "",
+          about_me_3: "",
+          about_me_4: "",
+          about_me_5: "",
+          about_me_6: "",
+          about_me_7: "",
+          about_me_8: "",
+        };
+        
+        // Only update with actual data, fallback to empty strings
+        const updatedData = {};
+        Object.keys(defaultData).forEach(key => {
+          updatedData[key] = data[key] || defaultData[key];
         });
+        
+        setAboutData(updatedData);
       }
     } catch (error) {
       console.error("Error fetching about data:", error.message);
+    } finally {
+      setFetching(false);
     }
-    setFetching(false);
-  }, []); // Empty dependency array ensures this function is stable
+  }, [setFetching]);
 
   // 4. useEffect to run on mount
   useEffect(() => {

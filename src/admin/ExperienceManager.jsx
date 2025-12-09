@@ -66,7 +66,7 @@ export default function ExperienceManager() {
 
   useEffect(() => {
     fetchExperiences();
-  }, []);
+  }, [fetchExperiences]);
 
   const handleSave = async () => {
     if (!newExp.role || !newExp.period || !newExp.description) {
