@@ -3,34 +3,34 @@ import { supabase } from "../config/supabaseClient";
 import { Save, RefreshCw } from "lucide-react";
 
 export default function AboutManager() {
-  // 1. Define Defaults
-  const DEFAULT_STRINGS = [
-    "I am an IT Student 💻",
-    "I am a Graphic Designer 🎨",
-    "I am a Front-End Developer 🖥️",
-    "I am a Digital Artist ✏️",
-    "I am a Gymnastics Coach 🤸‍♀️",
-    "I am a UI/UX Designer 📱"
-  ];
-
-  // 2. Initialize state
-  const [aboutData, setAboutData] = useState({
+  // 1. DEFINE DEFAULTS (Exact copies from Home.jsx and About.jsx)
+  const DEFAULT_DATA = {
+    // --- Home.jsx Defaults ---
     name: "Liann Gonzales",
-    title: "IT professional and digital creative",
-    location: "Bulacan, Philippines",
     circular_text: "Information*Technology*",
     resume_link: "",
-    typed_strings: DEFAULT_STRINGS, 
-    paragraph1: "",
-    paragraph2: "",
-    paragraph3: "",
-    paragraph4: "",
-  });
+    typed_strings: [
+      "I am an IT Student 💻",
+      "I am a Graphic Designer 🎨",
+      "I am a Front-End Developer 🖥️",
+      "I am a Digital Artist ✏️",
+      "I am a Gymnastics Coach 🤸‍♀️",
+      "I am a UI/UX Designer 📱",
+    ],
+    // --- About.jsx Defaults ---
+    title: "IT professional and digital creative",
+    location: "Bulacan, Philippines",
+    paragraph1: "Hi, I'm <strong>Liann Gonzales</strong>, an aspiring <strong>IT professional </strong> and <strong>digital creative</strong> from <strong>Bulacan, Philippines</strong>. I'm passionate about technology, design, and continuous learning. My goal is to bridge creativity and functionality by crafting meaningful digital experiences that make everyday tasks simpler and more enjoyable.",
+    paragraph2: "As an <strong>Information Technology student</strong>, I love exploring various fields such as <strong>UI/UX design</strong>, <strong>front-end web development</strong>, and <strong>software innovation</strong>. I enjoy turning ideas into real, interactive projects from designing clean, user-friendly interfaces to building systems that help people stay focused, organized, and productive.",
+    paragraph3: "Outside academics, I express my creativity through <strong>graphic design</strong> and <strong> digital art</strong>. I've worked on logo designs, brand identities, and illustrations that reflect personality and purpose. My experience as a <strong> gymnastics coach</strong> and <strong>technical director</strong> has also strengthened my teamwork, leadership, and attention to detail qualities that I apply in both creative and technical work.",
+    paragraph4: "I'm constantly learning, experimenting, and improving whether it's mastering new technologies, designing better user flows, or collaborating with others on innovative ideas. Ultimately, I aspire to become a <strong>versatile IT professional</strong> who blends technical knowledge with creative thinking to make a positive impact in the digital world.",
+  };
 
+  const [aboutData, setAboutData] = useState(DEFAULT_DATA);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // 3. Fetch Data Function
+  // 2. Fetch Data
   const fetchAboutData = useCallback(async () => {
     setFetching(true);
     try {
@@ -40,42 +40,41 @@ export default function AboutManager() {
         .eq("id", 1)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") throw error;
 
       if (data) {
-        const defaultData = {
-          section_title: "",
-          section_description: "",
-          about_me: "",
-          about_me_2: "",
-          about_me_3: "",
-          about_me_4: "",
-          about_me_5: "",
-          about_me_6: "",
-          about_me_7: "",
-          about_me_8: "",
-        };
-        
-        // Only update with actual data, fallback to empty strings
-        const updatedData = {};
-        Object.keys(defaultData).forEach(key => {
-          updatedData[key] = data[key] || defaultData[key];
+        // Merge DB data with Defaults (if DB field is null, use Default)
+        setAboutData({
+          name: data.name || DEFAULT_DATA.name,
+          title: data.title || DEFAULT_DATA.title,
+          location: data.location || DEFAULT_DATA.location,
+          circular_text: data.circular_text || DEFAULT_DATA.circular_text,
+          resume_link: data.resume_link || "",
+          // Ensure arrays are handled correctly
+          typed_strings: (data.typed_strings && data.typed_strings.length > 0) 
+            ? data.typed_strings 
+            : DEFAULT_DATA.typed_strings,
+          paragraph1: data.paragraph1 || DEFAULT_DATA.paragraph1,
+          paragraph2: data.paragraph2 || DEFAULT_DATA.paragraph2,
+          paragraph3: data.paragraph3 || DEFAULT_DATA.paragraph3,
+          paragraph4: data.paragraph4 || DEFAULT_DATA.paragraph4,
         });
-        
-        setAboutData(updatedData);
+      } else {
+        // No data in DB yet? Set state to Defaults so user can save them.
+        setAboutData(DEFAULT_DATA);
       }
     } catch (error) {
       console.error("Error fetching about data:", error.message);
     } finally {
       setFetching(false);
     }
-  }, [setFetching]);
+  }, []);
 
-  // 4. useEffect to run on mount
   useEffect(() => {
     fetchAboutData();
   }, [fetchAboutData]);
 
+  // 3. Save Data
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -91,10 +90,10 @@ export default function AboutManager() {
     setLoading(false);
   };
 
+  // Helper for Typed Text (Array <-> String)
   const handleTypedStringsChange = (e) => {
     const val = e.target.value;
-    // Split by new line to create array
-    const array = val.split("\n"); 
+    const array = val.split("\n");
     setAboutData({ ...aboutData, typed_strings: array });
   };
 
@@ -108,7 +107,7 @@ export default function AboutManager() {
             <button
                 onClick={fetchAboutData}
                 className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg transition"
-                title="Refresh Data"
+                title="Refresh / Reset to DB"
             >
                 <RefreshCw size={18} />
             </button>
@@ -122,7 +121,7 @@ export default function AboutManager() {
         </div>
       </div>
 
-      {/* --- SECTION 1: HOME PAGE DETAILS --- */}
+      {/* --- SECTION 1: HOME PAGE CONFIG --- */}
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
           🏠 Home Page Configuration
@@ -130,9 +129,7 @@ export default function AboutManager() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Display Name
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Display Name</label>
             <input
               type="text"
               className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
@@ -142,9 +139,7 @@ export default function AboutManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Circular Text
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Circular Text</label>
             <input
               type="text"
               className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
@@ -154,41 +149,30 @@ export default function AboutManager() {
           </div>
         </div>
 
-        {/* --- TYPED TEXT AREA --- */}
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Animated Typed Text (One phrase per line)
           </label>
           <textarea
-            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white h-48 font-mono text-sm focus:border-blue-500 outline-none leading-relaxed"
-            // Join array with newlines for display, use optional chaining
-            value={aboutData.typed_strings?.join("\n") || ""}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white h-40 font-mono text-sm focus:border-blue-500 outline-none leading-relaxed"
+            value={aboutData.typed_strings.join("\n")}
             onChange={handleTypedStringsChange}
-            placeholder="I am an IT Student&#10;I am a Graphic Designer"
           />
-          <p className="text-xs text-gray-400 mt-2">
-            * Each line creates a new typing animation phrase.
-          </p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-2">
-            Resume Link (URL)
-          </label>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">Resume Link (URL)</label>
           <input
             type="text"
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
             value={aboutData.resume_link}
             onChange={(e) => setAboutData({ ...aboutData, resume_link: e.target.value })}
-            placeholder="Leave empty to use the default PDF file"
+            placeholder="Optional: Paste URL to override default PDF"
           />
-          <p className="text-xs text-gray-400 mt-1">
-            If this is empty, the "Download Resume" button will download your default PDF file.
-          </p>
         </div>
       </div>
 
-      {/* --- SECTION 2: ABOUT PAGE DETAILS --- */}
+      {/* --- SECTION 2: ABOUT PAGE CONFIG --- */}
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
           👤 About Page Configuration
@@ -196,9 +180,7 @@ export default function AboutManager() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Title
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Professional Title</label>
             <input
               type="text"
               className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
@@ -208,9 +190,7 @@ export default function AboutManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Location
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Location</label>
             <input
               type="text"
               className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
@@ -220,15 +200,15 @@ export default function AboutManager() {
           </div>
         </div>
 
-        {/* Paragraphs Loop */}
+        {/* Dynamic Paragraphs */}
         {[1, 2, 3, 4].map((num) => (
           <div key={num}>
             <label className="block text-sm font-semibold text-gray-300 mb-2">
-              Bio Paragraph {num}
+              Paragraph {num} <span className="text-xs text-gray-500 font-normal">(HTML tags like &lt;strong&gt; are allowed)</span>
             </label>
             <textarea
-              className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white h-24 focus:border-blue-500 outline-none"
-              value={aboutData[`paragraph${num}`] || ""}
+              className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white h-32 focus:border-blue-500 outline-none"
+              value={aboutData[`paragraph${num}`]}
               onChange={(e) => setAboutData({ ...aboutData, [`paragraph${num}`]: e.target.value })}
             />
           </div>

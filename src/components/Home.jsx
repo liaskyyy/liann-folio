@@ -19,8 +19,7 @@ function Home() {
     <motion.section
       id="home"
       className="pt-24 sm:pt-28 pb-16 relative flex items-center justify-center min-h-screen
-        bg-gradient-to-b from-white to-gray-50 
-        dark:from-gray-900 dark:to-gray-950
+        bg-base-100 dark:bg-gray-950
         transition-colors duration-300"
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
