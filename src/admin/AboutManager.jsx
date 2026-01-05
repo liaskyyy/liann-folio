@@ -314,7 +314,7 @@ export default function AboutManager() {
               <div className="flex-1">
                 <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
                   <Upload className="mr-2 h-4 w-4" />
-                  {aboutData.resume_file ? 'Change Resume' : 'Upload Resume'}
+                  Upload New Resume
                   <input 
                     type="file" 
                     className="hidden" 
