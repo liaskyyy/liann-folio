@@ -8,10 +8,10 @@ export default function AboutManager() {
     // --- Home.jsx Defaults ---
     name: "Liann Gonzales",
     circular_text: "Information*Technology*",
-    profile_picture: "",
+    profile_picture_front: "",
+    profile_picture_back: "",
     resume_file: "",
     resume_link: "",
-    profile_image: "", // New Field
     typed_strings: [
       "I am an IT Student 💻",
       "I am a Graphic Designer 🎨",
@@ -57,7 +57,7 @@ export default function AboutManager() {
             ? data.typed_strings 
             : DEFAULT_DATA.typed_strings,
         });
-        if (data.profile_image) setImagePreview(data.profile_image);
+        if (data.profile_picture_front) setImagePreview(data.profile_picture_front);
       }
     } catch (error) {
       console.error("Error fetching about data:", error.message);
@@ -93,16 +93,19 @@ export default function AboutManager() {
   };
 
   // 4. Handle Profile Picture Upload
-  const handleProfilePictureChange = async (e) => {
+  const handleProfilePictureChange = async (e, type = 'front') => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
       setLoading(true);
-      const publicUrl = await handleFileUpload(file, 'profile');
-      setAboutData({ ...aboutData, profile_picture: publicUrl });
+      const publicUrl = await handleFileUpload(file, `profile_${type}`);
+      setAboutData({ 
+        ...aboutData, 
+        [`profile_picture_${type}`]: publicUrl 
+      });
     } catch (error) {
-      alert("❌ Error uploading profile picture: " + error.message);
+      alert(`❌ Error uploading ${type} profile picture: ` + error.message);
     } finally {
       setLoading(false);
     }
@@ -170,52 +173,99 @@ export default function AboutManager() {
         </div>
       </div>
 
-      {/* --- SECTION 1: PROFILE PICTURE --- */}
-      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
+      {/* --- SECTION 1: PROFILE PICTURES --- */}
+      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-6">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
-          � Profile Picture
+          👤 Profile Pictures
         </h3>
         
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="w-40 h-40 rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
-            {aboutData.profile_picture ? (
-              <img 
-                src={aboutData.profile_picture} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '';
-                  e.target.parentElement.innerHTML = (
-                    '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
-                    '<User size={48} />' +
-                    '</div>'
-                  );
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <User size={48} />
-              </div>
-            )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Front Profile Picture */}
+          <div className="space-y-4">
+            <h4 className="text-md font-semibold text-gray-300">Front Profile</h4>
+            <div className="w-full aspect-square max-w-xs mx-auto rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
+              {aboutData.profile_picture_front ? (
+                <img 
+                  src={aboutData.profile_picture_front} 
+                  alt="Front Profile" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '';
+                    e.target.parentElement.innerHTML = (
+                      '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
+                      '<User size={48} />' +
+                      '</div>'
+                    );
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <User size={48} />
+                </div>
+              )}
+            </div>
+            
+            <div>
+              <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+                <Upload className="mr-2 h-4 w-4" />
+                {aboutData.profile_picture_front ? 'Change Front' : 'Upload Front'}
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => handleProfilePictureChange(e, 'front')}
+                  disabled={loading}
+                />
+              </label>
+            </div>
           </div>
-          
-          <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Upload New Profile Picture</label>
-            <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
-              <Upload className="mr-2 h-4 w-4" />
-              Choose File
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/*"
-                onChange={handleProfilePictureChange}
-                disabled={loading}
-              />
-            </label>
-            <p className="mt-2 text-xs text-gray-400">Recommended size: 400x400px (1:1 ratio)</p>
+
+          {/* Back Profile Picture */}
+          <div className="space-y-4">
+            <h4 className="text-md font-semibold text-gray-300">Back Profile</h4>
+            <div className="w-full aspect-square max-w-xs mx-auto rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
+              {aboutData.profile_picture_back ? (
+                <img 
+                  src={aboutData.profile_picture_back} 
+                  alt="Back Profile" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '';
+                    e.target.parentElement.innerHTML = (
+                      '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
+                      '<User size={48} />' +
+                      '</div>'
+                    );
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <User size={48} />
+                </div>
+              )}
+            </div>
+            
+            <div>
+              <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+                <Upload className="mr-2 h-4 w-4" />
+                {aboutData.profile_picture_back ? 'Change Back' : 'Upload Back'}
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => handleProfilePictureChange(e, 'back')}
+                  disabled={loading}
+                />
+              </label>
+            </div>
           </div>
         </div>
+        
+        <p className="text-xs text-gray-400 text-center mt-2">
+          Recommended size: 400x400px (1:1 ratio) for both images
+        </p>
       </div>
 
       {/* --- SECTION 2: HOME PAGE CONFIG --- */}
