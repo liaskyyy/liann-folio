@@ -99,16 +99,66 @@ export default function AboutManager() {
 
     try {
       setLoading(true);
-      const publicUrl = await handleFileUpload(file, `profile_${type}`);
-      setAboutData({ 
-        ...aboutData, 
+      
+      // If user selects the same file again, force re-upload
+      const fileExt = file.name.split('.').pop();
+      const fileName = `profile_${type}_${Date.now()}.${fileExt}`;
+      const filePath = `profile_pictures/${fileName}`;
+
+      console.log(`📤 Uploading ${type} profile picture...`);
+      
+      // Upload the file
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio')
+        .upload(filePath, file, { 
+          cacheControl: '0',
+          upsert: true 
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL with cache busting
+      const { data: { publicUrl } } = supabase.storage
+        .from('portfolio')
+        .getPublicUrl(filePath);
+
+      console.log(`✅ ${type} image uploaded:`, publicUrl);
+      
+      // Create updated data object
+      const updatedData = { 
+        ...aboutData,
+        id: 1, // Ensure we have the ID for upsert
         [`profile_picture_${type}`]: publicUrl 
-      });
+      };
+
+      // Update state
+      setAboutData(updatedData);
+      
+      // Auto-save to database
+      console.log('💾 Saving to database...');
+      const { error: saveError } = await supabase
+        .from('about')
+        .upsert(updatedData);
+        
+      if (saveError) throw saveError;
+      
+      console.log('✅ Successfully saved to database');
+      alert(`✅ ${type === 'front' ? 'Front' : 'Back'} profile picture updated successfully!`);
+      
     } catch (error) {
-      alert(`❌ Error uploading ${type} profile picture: ` + error.message);
+      console.error('❌ Upload/save error:', error);
+      alert(`❌ Error updating ${type} profile picture: ` + error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Reset to default picture
+  const resetToDefaultPicture = (type = 'front') => {
+    setAboutData({
+      ...aboutData,
+      [`profile_picture_${type}`]: '' // Empty string will trigger default image in Home component
+    });
   };
 
   // 5. Handle Resume Upload
@@ -156,20 +206,20 @@ export default function AboutManager() {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-white">Content Manager</h2>
         <div className="flex gap-2">
-            <button
-                onClick={fetchAboutData}
-                className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg transition"
-                title="Refresh / Reset to DB"
-            >
-                <RefreshCw size={18} />
-            </button>
-            <button
-                onClick={handleSave}
-                disabled={loading}
-                className="bg-[#3246ea] hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-semibold flex items-center gap-2 transition disabled:opacity-50"
-            >
-                <Save size={18} /> {loading ? "Saving..." : "Save All"}
-            </button>
+          <button
+            onClick={fetchAboutData}
+            className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-lg transition"
+            title="Refresh / Reset to DB"
+          >
+            <RefreshCw size={18} />
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-[#3246ea] hover:bg-blue-700 text-white py-2 px-6 rounded-lg font-semibold flex items-center gap-2 transition disabled:opacity-50"
+          >
+            <Save size={18} /> {loading ? "Saving..." : "Save All"}
+          </button>
         </div>
       </div>
 
@@ -211,13 +261,23 @@ export default function AboutManager() {
                 <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
                   <Upload className="mr-2 h-4 w-4" />
                   {aboutData.profile_picture_front ? 'Change Front Image' : 'Upload Front Image'}
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={(e) => handleProfilePictureChange(e, 'front')}
-                    disabled={loading}
-                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="file" 
+                      id="profile-front"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleProfilePictureChange(e, 'front')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => resetToDefaultPicture('front')}
+                      className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+                      disabled={loading}
+                    >
+                      Use Default
+                    </button>
+                  </div>
                 </label>
                 {aboutData.profile_picture_front && (
                   <button
@@ -261,13 +321,23 @@ export default function AboutManager() {
                 <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
                   <Upload className="mr-2 h-4 w-4" />
                   {aboutData.profile_picture_back ? 'Change Back Image' : 'Upload Back Image'}
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={(e) => handleProfilePictureChange(e, 'back')}
-                    disabled={loading}
-                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="file" 
+                      id="profile-back"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleProfilePictureChange(e, 'back')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => resetToDefaultPicture('back')}
+                      className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+                      disabled={loading}
+                    >
+                      Use Default
+                    </button>
+                  </div>
                 </label>
                 {aboutData.profile_picture_back && (
                   <button
@@ -281,55 +351,6 @@ export default function AboutManager() {
               </div>
             </div>
           </div>
-          
-          <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-            <h4 className="font-medium text-gray-300 mb-2">Quick Options</h4>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  // Use default front image
-                  const defaultFront = 'https://example.com/default-front.jpg'; // Replace with your default front image URL
-                  setAboutData({ ...aboutData, profile_picture_front: defaultFront });
-                }}
-                className="text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 text-gray-200 transition"
-                disabled={loading}
-              >
-                Use Default Front
-              </button>
-              <button
-                onClick={() => {
-                  // Use default back image
-                  const defaultBack = 'https://example.com/default-back.jpg'; // Replace with your default back image URL
-                  setAboutData({ ...aboutData, profile_picture_back: defaultBack });
-                }}
-                className="text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 text-gray-200 transition"
-                disabled={loading}
-              >
-                Use Default Back
-              </button>
-              <button
-                onClick={() => {
-                  // Use the same image for both sides
-                  const image = aboutData.profile_picture_front || aboutData.profile_picture_back;
-                  if (image) {
-                    setAboutData({
-                      ...aboutData,
-                      profile_picture_front: image,
-                      profile_picture_back: image
-                    });
-                  }
-                }}
-                className="text-sm px-3 py-1.5 bg-blue-900/50 hover:bg-blue-900/70 rounded border border-blue-800/50 text-blue-200 transition"
-                disabled={loading || (!aboutData.profile_picture_front && !aboutData.profile_picture_back)}
-              >
-                Use Same Image for Both Sides
-              </button>
-            </div>
-          </div>
-          
-          <p className="text-xs text-gray-400 text-center">
-            Recommended size: 1000x1000px (1:1 ratio) for best quality. Images will be cropped to a circle on the home page.
-          </p>
         </div>
       </div>
 

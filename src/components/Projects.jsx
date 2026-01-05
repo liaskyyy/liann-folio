@@ -34,9 +34,9 @@ export default function Projects() {
     },
     {
       id: "temp-3",
-      title: "TMC Website",
+      title: "The Making of a Champion",
       description: "Developed a responsive website for a gymnastics academy, featuring programs, coaches, and events with user-friendly navigation.",
-      link: "https://github.com/liaskyyy/tmc-website.git",
+      link: "https://tmc-gymnastics-beryl.vercel.app/",
       image_url: "tmc",
       category: "it"
     },
@@ -149,21 +149,29 @@ export default function Projects() {
           {loading ? (
              <div className="text-center text-gray-500">Loading projects...</div>
           ) : (
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((project) => (
-                    <Card 
-                        key={project.id} 
-                        {...project} 
-                        image={getProjectImage(project.image_url)}
-                        // Special handling for default assets that are downloads
-                        // If it's a new DB item, link is just a string URL
-                        link={
-                           (project.id === "temp-4") ? orgShirt :
-                           (project.id === "temp-5") ? logofolioPdf :
-                           project.link 
-                        }
-                    />
-                ))}
+              <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.map((project) => {
+                    const isDownload = project.isDownload || false;
+                    let link = project.link;
+                    
+                    // Special handling for default assets that are downloads
+                    if (project.id === "temp-4") {
+                        link = orgShirt;
+                    } else if (project.id === "temp-5") {
+                        link = logofolioPdf;
+                    }
+                    
+                    return (
+                        <Card 
+                            key={project.id}
+                            title={project.title}
+                            description={project.description}
+                            image={getProjectImage(project.image_url)}
+                            link={link}
+                            download={isDownload}
+                        />
+                    );
+                })} 
             </div>
           )}
         </div>
