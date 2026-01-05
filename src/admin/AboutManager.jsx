@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../config/supabaseClient";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, Upload, User, FileText } from "lucide-react";
 
 export default function AboutManager() {
-  // 1. DEFINE DEFAULTS (Exact copies from Home.jsx and About.jsx)
+  // 1. DEFINE DEFAULTS
   const DEFAULT_DATA = {
     // --- Home.jsx Defaults ---
     name: "Liann Gonzales",
     circular_text: "Information*Technology*",
+    profile_picture: "",
+    resume_file: "",
     resume_link: "",
+    profile_image: "", // New Field
     typed_strings: [
       "I am an IT Student 💻",
       "I am a Graphic Designer 🎨",
@@ -17,18 +20,22 @@ export default function AboutManager() {
       "I am a Gymnastics Coach 🤸‍♀️",
       "I am a UI/UX Designer 📱",
     ],
-    // --- About.jsx Defaults ---
     title: "IT professional and digital creative",
     location: "Bulacan, Philippines",
-    paragraph1: "Hi, I'm <strong>Liann Gonzales</strong>, an aspiring <strong>IT professional </strong> and <strong>digital creative</strong> from <strong>Bulacan, Philippines</strong>. I'm passionate about technology, design, and continuous learning. My goal is to bridge creativity and functionality by crafting meaningful digital experiences that make everyday tasks simpler and more enjoyable.",
-    paragraph2: "As an <strong>Information Technology student</strong>, I love exploring various fields such as <strong>UI/UX design</strong>, <strong>front-end web development</strong>, and <strong>software innovation</strong>. I enjoy turning ideas into real, interactive projects from designing clean, user-friendly interfaces to building systems that help people stay focused, organized, and productive.",
-    paragraph3: "Outside academics, I express my creativity through <strong>graphic design</strong> and <strong> digital art</strong>. I've worked on logo designs, brand identities, and illustrations that reflect personality and purpose. My experience as a <strong> gymnastics coach</strong> and <strong>technical director</strong> has also strengthened my teamwork, leadership, and attention to detail qualities that I apply in both creative and technical work.",
-    paragraph4: "I'm constantly learning, experimenting, and improving whether it's mastering new technologies, designing better user flows, or collaborating with others on innovative ideas. Ultimately, I aspire to become a <strong>versatile IT professional</strong> who blends technical knowledge with creative thinking to make a positive impact in the digital world.",
+    paragraph1: "Hi, I'm <strong>Liann Gonzales</strong>, an aspiring <strong>IT professional </strong> and <strong>digital creative</strong> from <strong>Bulacan, Philippines</strong>. I'm passionate about technology, design, and continuous learning...",
+    paragraph2: "As an <strong>Information Technology student</strong>, I love exploring various fields such as <strong>UI/UX design</strong>...",
+    paragraph3: "Outside academics, I express my creativity through <strong>graphic design</strong>...",
+    paragraph4: "I'm constantly learning, experimenting, and improving...",
   };
 
   const [aboutData, setAboutData] = useState(DEFAULT_DATA);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  // File Upload States
+  const [imageFile, setImageFile] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // 2. Fetch Data
   const fetchAboutData = useCallback(async () => {
@@ -43,25 +50,14 @@ export default function AboutManager() {
       if (error && error.code !== "PGRST116") throw error;
 
       if (data) {
-        // Merge DB data with Defaults (if DB field is null, use Default)
         setAboutData({
-          name: data.name || DEFAULT_DATA.name,
-          title: data.title || DEFAULT_DATA.title,
-          location: data.location || DEFAULT_DATA.location,
-          circular_text: data.circular_text || DEFAULT_DATA.circular_text,
-          resume_link: data.resume_link || "",
-          // Ensure arrays are handled correctly
+          ...DEFAULT_DATA,
+          ...data,
           typed_strings: (data.typed_strings && data.typed_strings.length > 0) 
             ? data.typed_strings 
             : DEFAULT_DATA.typed_strings,
-          paragraph1: data.paragraph1 || DEFAULT_DATA.paragraph1,
-          paragraph2: data.paragraph2 || DEFAULT_DATA.paragraph2,
-          paragraph3: data.paragraph3 || DEFAULT_DATA.paragraph3,
-          paragraph4: data.paragraph4 || DEFAULT_DATA.paragraph4,
         });
-      } else {
-        // No data in DB yet? Set state to Defaults so user can save them.
-        setAboutData(DEFAULT_DATA);
+        if (data.profile_image) setImagePreview(data.profile_image);
       }
     } catch (error) {
       console.error("Error fetching about data:", error.message);
@@ -74,7 +70,61 @@ export default function AboutManager() {
     fetchAboutData();
   }, [fetchAboutData]);
 
-  // 3. Save Data
+  // 3. Handle File Upload
+  const handleFileUpload = async (file, type) => {
+    if (!file) return null;
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${type}_${Date.now()}.${fileExt}`;
+    const filePath = `${type}s/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('portfolio')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('portfolio')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  // 4. Handle Profile Picture Upload
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const publicUrl = await handleFileUpload(file, 'profile');
+      setAboutData({ ...aboutData, profile_picture: publicUrl });
+    } catch (error) {
+      alert("❌ Error uploading profile picture: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 5. Handle Resume Upload
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const publicUrl = await handleFileUpload(file, 'resume');
+      setAboutData({ ...aboutData, resume_file: publicUrl, resume_link: publicUrl });
+    } catch (error) {
+      alert("❌ Error uploading resume: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 6. Save Data
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -90,7 +140,6 @@ export default function AboutManager() {
     setLoading(false);
   };
 
-  // Helper for Typed Text (Array <-> String)
   const handleTypedStringsChange = (e) => {
     const val = e.target.value;
     const array = val.split("\n");
@@ -121,7 +170,55 @@ export default function AboutManager() {
         </div>
       </div>
 
-      {/* --- SECTION 1: HOME PAGE CONFIG --- */}
+      {/* --- SECTION 1: PROFILE PICTURE --- */}
+      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
+        <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
+          � Profile Picture
+        </h3>
+        
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-40 h-40 rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
+            {aboutData.profile_picture ? (
+              <img 
+                src={aboutData.profile_picture} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '';
+                  e.target.parentElement.innerHTML = (
+                    '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
+                    '<User size={48} />' +
+                    '</div>'
+                  );
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <User size={48} />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Upload New Profile Picture</label>
+            <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+              <Upload className="mr-2 h-4 w-4" />
+              Choose File
+              <input 
+                type="file" 
+                className="hidden" 
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                disabled={loading}
+              />
+            </label>
+            <p className="mt-2 text-xs text-gray-400">Recommended size: 400x400px (1:1 ratio)</p>
+          </div>
+        </div>
+      </div>
+
+      {/* --- SECTION 2: HOME PAGE CONFIG --- */}
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
           🏠 Home Page Configuration
@@ -160,19 +257,54 @@ export default function AboutManager() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-2">Resume Link (URL)</label>
-          <input
-            type="text"
-            className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
-            value={aboutData.resume_link}
-            onChange={(e) => setAboutData({ ...aboutData, resume_link: e.target.value })}
-            placeholder="Optional: Paste URL to override default PDF"
-          />
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">Resume File</label>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+                  <Upload className="mr-2 h-4 w-4" />
+                  {aboutData.resume_file ? 'Change Resume' : 'Upload Resume'}
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleResumeUpload}
+                    disabled={loading}
+                  />
+                </label>
+                <p className="mt-1 text-xs text-gray-400">Accepted formats: .pdf, .doc, .docx</p>
+              </div>
+              {aboutData.resume_file && (
+                <a 
+                  href={aboutData.resume_file} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 transition"
+                >
+                  <FileText className="h-4 w-4" />
+                  View Current Resume
+                </a>
+              )}
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">
+              Or use external resume link (overrides uploaded file)
+            </label>
+            <input
+              type="text"
+              className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-500 outline-none"
+              value={aboutData.resume_link}
+              onChange={(e) => setAboutData({ ...aboutData, resume_link: e.target.value })}
+              placeholder="https://example.com/my-resume.pdf"
+            />
+          </div>
         </div>
       </div>
 
-      {/* --- SECTION 2: ABOUT PAGE CONFIG --- */}
+      {/* --- SECTION 3: ABOUT PAGE CONFIG --- */}
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-4">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
           👤 About Page Configuration
@@ -200,7 +332,6 @@ export default function AboutManager() {
           </div>
         </div>
 
-        {/* Dynamic Paragraphs */}
         {[1, 2, 3, 4].map((num) => (
           <div key={num}>
             <label className="block text-sm font-semibold text-gray-300 mb-2">
