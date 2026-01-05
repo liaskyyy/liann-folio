@@ -11,8 +11,8 @@ import CircularText from "../ui/CircularText";
 function Home() {
   const [flipped, setFlipped] = useState(false);
   const [profilePictures, setProfilePictures] = useState({
-    front: LiannFront,
-    back: LiannBack
+    front: null,
+    back: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -25,26 +25,57 @@ function Home() {
           .eq('id', 1)
           .single();
 
+        if (error) throw error;
+
         if (data) {
           setProfilePictures({
-            front: data.profile_picture_front || LiannFront,
-            back: data.profile_picture_back || LiannBack
+            front: data.profile_picture_front ? data.profile_picture_front + '?t=' + Date.now() : LiannFront,
+            back: data.profile_picture_back ? data.profile_picture_back + '?t=' + Date.now() : LiannBack
+          });
+        } else {
+          // If no data found, use default images
+          setProfilePictures({
+            front: LiannFront,
+            back: LiannBack
           });
         }
       } catch (error) {
         console.error('Error fetching profile pictures:', error);
+        // Fallback to default images on error
+        setProfilePictures({
+          front: LiannFront,
+          back: LiannBack
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfilePictures();
+
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('profile_pictures_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'about',
+        filter: 'id=eq.1'
+      }, (payload) => {
+        // When data changes, refetch the profile pictures
+        fetchProfilePictures();
+      })
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   const handleFlip = () => {
     setFlipped(!flipped);
   };
-  
 
   return (
     <motion.section
@@ -80,15 +111,20 @@ function Home() {
                 className="absolute w-full h-full rounded-2xl overflow-hidden flex justify-center items-center"
                 style={{ backfaceVisibility: "hidden" }}
               >
-                <img
-                  src={profilePictures.front}
-                  alt="Liann Gonzales Front"
-                  className="w-full h-full object-cover rounded-2xl"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = LiannFront;
-                  }}
-                />
+                {profilePictures.front && profilePictures.back && (
+                  <img
+                    src={flipped ? profilePictures.back : profilePictures.front}
+                    alt={flipped ? "Liann Gonzales Back" : "Liann Gonzales"}
+                    className={`w-full h-full object-cover rounded-full transition-all duration-500 ${
+                      flipped ? "rotate-y-180" : ""
+                    }`}
+                    onError={(e) => {
+                      // Fallback to default images if the loaded image fails
+                      e.target.src = flipped ? LiannBack : LiannFront;
+                    }}
+                    key={flipped ? 'back' : 'front'}
+                  />
+                )}
               </div>
 
               {/* Back Side */}
@@ -99,15 +135,20 @@ function Home() {
                   transform: "rotateY(180deg)",
                 }}
               >
-                <img
-                  src={profilePictures.back}
-                  alt="Liann Gonzales Back"
-                  className="w-full h-full object-cover rounded-2xl"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = LiannBack;
-                  }}
-                />
+                {profilePictures.front && profilePictures.back && (
+                  <img
+                    src={flipped ? profilePictures.back : profilePictures.front}
+                    alt={flipped ? "Liann Gonzales Back" : "Liann Gonzales"}
+                    className={`w-full h-full object-cover rounded-full transition-all duration-500 ${
+                      flipped ? "rotate-y-180" : ""
+                    }`}
+                    onError={(e) => {
+                      // Fallback to default images if the loaded image fails
+                      e.target.src = flipped ? LiannBack : LiannFront;
+                    }}
+                    key={flipped ? 'back' : 'front'}
+                  />
+                )}
               </div>
             </motion.div>
 
