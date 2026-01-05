@@ -46,17 +46,19 @@ function About() {
       viewport={{ once: true }}
     >
       <div className="max-w-6xl mx-auto px-6">
-        {/* Main Title - Mobile: Center, Desktop: Left */}
-        <div className="text-center md:text-left mb-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#3246ea] to-blue-400">
-            About Me
+        {/* Centered Title and Subtitle */}
+        <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#3246ea] to-blue-400 mb-2">
+              About Me
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">{about.title} • {about.location}</p>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              {about.title} • {about.location}
+            </p>
         </div>
 
         <div className="max-w-3xl mx-auto">
           <motion.div 
-            className="space-y-6 text-justify"
+            className="space-y-6 text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
