@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ReactTyped } from "react-typed";
+import { supabase } from "../config/supabaseClient";
 import LiannFront from "../assets/LiannFront.png";
 import LiannBack from "../assets/LiannBack.png";
 import resume from "../assets/LiannGonzalesResume.pdf";
@@ -9,6 +10,36 @@ import CircularText from "../ui/CircularText";
 
 function Home() {
   const [flipped, setFlipped] = useState(false);
+  const [profilePictures, setProfilePictures] = useState({
+    front: LiannFront,
+    back: LiannBack
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfilePictures = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('about')
+          .select('profile_picture_front, profile_picture_back')
+          .eq('id', 1)
+          .single();
+
+        if (data) {
+          setProfilePictures({
+            front: data.profile_picture_front || LiannFront,
+            back: data.profile_picture_back || LiannBack
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching profile pictures:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfilePictures();
+  }, []);
 
   const handleFlip = () => {
     setFlipped(!flipped);
@@ -50,9 +81,13 @@ function Home() {
                 style={{ backfaceVisibility: "hidden" }}
               >
                 <img
-                  src={LiannFront}
+                  src={profilePictures.front}
                   alt="Liann Gonzales Front"
                   className="w-full h-full object-cover rounded-2xl"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = LiannFront;
+                  }}
                 />
               </div>
 
@@ -65,9 +100,13 @@ function Home() {
                 }}
               >
                 <img
-                  src={LiannBack}
+                  src={profilePictures.back}
                   alt="Liann Gonzales Back"
                   className="w-full h-full object-cover rounded-2xl"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = LiannBack;
+                  }}
                 />
               </div>
             </motion.div>

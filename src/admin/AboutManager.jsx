@@ -173,99 +173,164 @@ export default function AboutManager() {
         </div>
       </div>
 
-      {/* --- SECTION 1: PROFILE PICTURES --- */}
+      {/* --- SECTION 1: HOME PAGE PROFILE PICTURES --- */}
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 space-y-6">
         <h3 className="text-xl font-bold text-[#3246ea] border-b border-gray-600 pb-2">
-          👤 Profile Pictures
+          🏠 Home Page Profile Pictures
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Front Profile Picture */}
-          <div className="space-y-4">
-            <h4 className="text-md font-semibold text-gray-300">Front Profile</h4>
-            <div className="w-full aspect-square max-w-xs mx-auto rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
-              {aboutData.profile_picture_front ? (
-                <img 
-                  src={aboutData.profile_picture_front} 
-                  alt="Front Profile" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '';
-                    e.target.parentElement.innerHTML = (
-                      '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
-                      '<User size={48} />' +
-                      '</div>'
-                    );
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <User size={48} />
-                </div>
-              )}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Front Profile Picture */}
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-gray-300">Front Profile</h4>
+              <div className="w-full aspect-square max-w-xs mx-auto rounded-2xl bg-gray-700 border-2 border-gray-600 overflow-hidden">
+                {aboutData.profile_picture_front ? (
+                  <img 
+                    src={aboutData.profile_picture_front} 
+                    alt="Front Profile" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '';
+                      e.target.parentElement.innerHTML = (
+                        '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
+                        '<User size={48} />' +
+                        '</div>'
+                      );
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <User size={48} />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+                  <Upload className="mr-2 h-4 w-4" />
+                  {aboutData.profile_picture_front ? 'Change Front Image' : 'Upload Front Image'}
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => handleProfilePictureChange(e, 'front')}
+                    disabled={loading}
+                  />
+                </label>
+                {aboutData.profile_picture_front && (
+                  <button
+                    onClick={() => setAboutData({ ...aboutData, profile_picture_front: '' })}
+                    className="w-full p-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded border border-red-900/50 transition"
+                    disabled={loading}
+                  >
+                    Remove Front Image
+                  </button>
+                )}
+              </div>
             </div>
-            
-            <div>
-              <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
-                <Upload className="mr-2 h-4 w-4" />
-                {aboutData.profile_picture_front ? 'Change Front' : 'Upload Front'}
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={(e) => handleProfilePictureChange(e, 'front')}
-                  disabled={loading}
-                />
-              </label>
-            </div>
-          </div>
 
-          {/* Back Profile Picture */}
-          <div className="space-y-4">
-            <h4 className="text-md font-semibold text-gray-300">Back Profile</h4>
-            <div className="w-full aspect-square max-w-xs mx-auto rounded-full bg-gray-700 border-2 border-gray-600 overflow-hidden flex items-center justify-center">
-              {aboutData.profile_picture_back ? (
-                <img 
-                  src={aboutData.profile_picture_back} 
-                  alt="Back Profile" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '';
-                    e.target.parentElement.innerHTML = (
-                      '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
-                      '<User size={48} />' +
-                      '</div>'
-                    );
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <User size={48} />
-                </div>
-              )}
-            </div>
-            
-            <div>
-              <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
-                <Upload className="mr-2 h-4 w-4" />
-                {aboutData.profile_picture_back ? 'Change Back' : 'Upload Back'}
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={(e) => handleProfilePictureChange(e, 'back')}
-                  disabled={loading}
-                />
-              </label>
+            {/* Back Profile Picture */}
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-gray-300">Back Profile</h4>
+              <div className="w-full aspect-square max-w-xs mx-auto rounded-2xl bg-gray-700 border-2 border-gray-600 overflow-hidden">
+                {aboutData.profile_picture_back ? (
+                  <img 
+                    src={aboutData.profile_picture_back} 
+                    alt="Back Profile" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '';
+                      e.target.parentElement.innerHTML = (
+                        '<div class="w-full h-full flex items-center justify-center text-gray-400">' +
+                        '<User size={48} />' +
+                        '</div>'
+                      );
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <User size={48} />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center justify-center w-full p-3 bg-gray-700 border border-gray-600 rounded text-white hover:bg-gray-600 cursor-pointer transition">
+                  <Upload className="mr-2 h-4 w-4" />
+                  {aboutData.profile_picture_back ? 'Change Back Image' : 'Upload Back Image'}
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => handleProfilePictureChange(e, 'back')}
+                    disabled={loading}
+                  />
+                </label>
+                {aboutData.profile_picture_back && (
+                  <button
+                    onClick={() => setAboutData({ ...aboutData, profile_picture_back: '' })}
+                    className="w-full p-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded border border-red-900/50 transition"
+                    disabled={loading}
+                  >
+                    Remove Back Image
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+          
+          <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+            <h4 className="font-medium text-gray-300 mb-2">Quick Options</h4>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  // Use default front image
+                  const defaultFront = 'https://example.com/default-front.jpg'; // Replace with your default front image URL
+                  setAboutData({ ...aboutData, profile_picture_front: defaultFront });
+                }}
+                className="text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 text-gray-200 transition"
+                disabled={loading}
+              >
+                Use Default Front
+              </button>
+              <button
+                onClick={() => {
+                  // Use default back image
+                  const defaultBack = 'https://example.com/default-back.jpg'; // Replace with your default back image URL
+                  setAboutData({ ...aboutData, profile_picture_back: defaultBack });
+                }}
+                className="text-sm px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 text-gray-200 transition"
+                disabled={loading}
+              >
+                Use Default Back
+              </button>
+              <button
+                onClick={() => {
+                  // Use the same image for both sides
+                  const image = aboutData.profile_picture_front || aboutData.profile_picture_back;
+                  if (image) {
+                    setAboutData({
+                      ...aboutData,
+                      profile_picture_front: image,
+                      profile_picture_back: image
+                    });
+                  }
+                }}
+                className="text-sm px-3 py-1.5 bg-blue-900/50 hover:bg-blue-900/70 rounded border border-blue-800/50 text-blue-200 transition"
+                disabled={loading || (!aboutData.profile_picture_front && !aboutData.profile_picture_back)}
+              >
+                Use Same Image for Both Sides
+              </button>
+            </div>
+          </div>
+          
+          <p className="text-xs text-gray-400 text-center">
+            Recommended size: 1000x1000px (1:1 ratio) for best quality. Images will be cropped to a circle on the home page.
+          </p>
         </div>
-        
-        <p className="text-xs text-gray-400 text-center mt-2">
-          Recommended size: 400x400px (1:1 ratio) for both images
-        </p>
       </div>
 
       {/* --- SECTION 2: HOME PAGE CONFIG --- */}

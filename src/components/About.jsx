@@ -54,38 +54,12 @@ function About() {
             <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">{about.title} • {about.location}</p>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
-          
-          {/* LEFT COLUMN: Profile Image */}
+        <div className="max-w-3xl mx-auto">
           <motion.div 
-            className="w-64 h-64 md:w-80 md:h-96 flex-shrink-0 relative"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            {/* Decorative background box */}
-            <div className="absolute inset-0 bg-[#3246ea] rounded-2xl rotate-6 -z-10 opacity-20"></div>
-            
-            {about.profile_image ? (
-              <img 
-                src={about.profile_image} 
-                alt={about.name} 
-                className="w-full h-full object-cover rounded-2xl shadow-2xl border-2 border-white/10"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-800 rounded-2xl flex items-center justify-center text-gray-500">
-                No Image
-              </div>
-            )}
-          </motion.div>
-
-          {/* RIGHT COLUMN: Text Paragraphs */}
-          <motion.div 
-            className="flex-1 space-y-6 text-center md:text-left"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-6 text-justify"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: about.paragraph1 }} />
@@ -93,7 +67,6 @@ function About() {
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: about.paragraph3 }} />
             <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: about.paragraph4 }} />
           </motion.div>
-
         </div>
       </div>
     </motion.section>
